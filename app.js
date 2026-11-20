@@ -1,7 +1,7 @@
 (function () {
   const TEMPLATES_KEY = "ips.templates";
   const PAYER_KEY = "ips.payer";
-  const TEMPLATE_FIELDS = ["account", "name", "code", "model", "reference", "purpose"];
+  const TEMPLATE_FIELDS = ["account", "name", "amount", "code", "model", "reference", "purpose"];
 
   qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
 
@@ -25,6 +25,19 @@
   function showError(message) {
     errorBox.textContent = message;
     errorBox.hidden = !message;
+  }
+
+  function formatAmount(amount) {
+    const [integer, fraction] = amount.split(",");
+    return `${integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${fraction}`;
+  }
+
+  function normalizedAmountOrEmpty(input) {
+    try {
+      return IPS.parseAmount(input);
+    } catch {
+      return "";
+    }
   }
 
   function loadTemplates() {
@@ -52,9 +65,9 @@
     if (!template) return;
     clearFieldMarks();
     for (const field of TEMPLATE_FIELDS) form.elements[field].value = template[field] || "";
-    form.elements.amount.value = "";
+    form.elements.amount.value = template.amount ? formatAmount(template.amount) : "";
     result.hidden = true;
-    form.elements.amount.focus();
+    if (!template.amount) form.elements.amount.focus();
   }
 
   function saveCurrentAsTemplate() {
@@ -70,10 +83,11 @@
       return;
     }
     showError("");
+    data.amount = normalizedAmountOrEmpty(data.amount);
     const label = data.name.trim().split("\n")[0];
     const templates = loadTemplates();
     const existing = templates.find((t) => t.account === data.account && t.label === label);
-    const template = existing || { id: String(Date.now()), label };
+    const template = existing || { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, label };
     for (const field of TEMPLATE_FIELDS) template[field] = data[field] || "";
     if (!existing) templates.push(template);
     templates.sort((a, b) => a.label.localeCompare(b.label, "sr"));
@@ -116,7 +130,7 @@
     const ctx = canvas.getContext("2d");
     ctx.font = `${fontSize}px sans-serif`;
 
-    const amountText = `${IPS.parseAmount(data.amount).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} RSD`;
+    const amountText = `${formatAmount(IPS.parseAmount(data.amount))} RSD`;
     const caption = [
       ...wrapText(ctx, data.name.trim(), qrSize - padding * 2),
       IPS.formatAccount(IPS.normalizeAccount(data.account)),
@@ -310,6 +324,7 @@
       values.name = template.name;
       values.code = template.code || values.code;
       values.purpose = values.purpose || template.purpose;
+      values.amount = values.amount || template.amount;
       if (!values.reference && template.reference) {
         values.model = template.model;
         values.reference = template.reference;
@@ -319,7 +334,7 @@
 
     for (const [field, value] of Object.entries(values)) {
       if (!value) continue;
-      form.elements[field].value = field === "amount" ? value.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : value;
+      form.elements[field].value = field === "amount" ? formatAmount(value) : value;
       form.elements[field].classList.add("recognized");
     }
     const missing = REQUIRED_FIELDS.filter((field) => !values[field]);
