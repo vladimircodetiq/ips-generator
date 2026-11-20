@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="IPS QR">
+  <meta name="theme-color" content="#0b5394">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>IPS QR generator</title>
+</head>
+<body>
+  <main>
+    <h1>IPS QR generator</h1>
+
+    <section class="scan">
+      <label for="photo" class="button">Scan bill</label>
+      <input id="photo" type="file" accept="image/*" hidden>
+      <div id="scan-preview" hidden>
+        <img id="scan-image" alt="Bill photo">
+        <p id="scan-status" role="status"></p>
+        <progress id="scan-progress" max="1" value="0"></progress>
+        <details id="scan-text-details" hidden>
+          <summary>Recognized text</summary>
+          <pre id="scan-text"></pre>
+        </details>
+      </div>
+    </section>
+
+    <section class="templates">
+      <label for="template">Saved payees</label>
+      <div class="row">
+        <select id="template"><option value="">— new payee —</option></select>
+        <button type="button" id="delete-template" class="secondary" disabled>Delete</button>
+      </div>
+    </section>
+
+    <form id="form" novalidate>
+      <label for="account">Payee account (račun primaoca)</label>
+      <input id="account" name="account" inputmode="numeric" autocomplete="off" placeholder="160-0000000012345-67" required>
+
+      <label for="name">Payee name and address (primalac)</label>
+      <textarea id="name" name="name" rows="2" maxlength="70" placeholder="JP Infostan&#10;Beograd" required></textarea>
+
+      <label for="amount">Amount, RSD (iznos)</label>
+      <input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="1.234,56" required>
+
+      <div class="row">
+        <div class="col-code">
+          <label for="code">Payment code (šifra)</label>
+          <input id="code" name="code" inputmode="numeric" maxlength="3" value="289" required>
+        </div>
+        <div class="col-model">
+          <label for="model">Model</label>
+          <input id="model" name="model" inputmode="numeric" maxlength="2" placeholder="97">
+        </div>
+      </div>
+
+      <label for="reference">Reference number (poziv na broj)</label>
+      <input id="reference" name="reference" autocomplete="off" placeholder="optional">
+
+      <label for="purpose">Purpose (svrha plaćanja)</label>
+      <input id="purpose" name="purpose" maxlength="35" placeholder="optional">
+
+      <label for="payer">Payer (uplatilac)</label>
+      <textarea id="payer" name="payer" rows="2" maxlength="70" placeholder="optional, remembered on this device"></textarea>
+
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <button type="submit">Generate QR code</button>
+      <button type="button" id="save-template" class="secondary">Save payee</button>
+    </form>
+
+    <section id="result" hidden>
+      <img id="qr-image" alt="IPS QR code">
+      <button type="button" id="share">Send by email / share</button>
+      <a id="download" class="button secondary" download="ips-qr.png">Download image</a>
+      <details>
+        <summary>Payload</summary>
+        <pre id="payload"></pre>
+      </details>
+    </section>
+  </main>
+
+  <script src="vendor/qrcode.js"></script>
+  <script src="ips.js"></script>
+  <script src="bill-parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "IPS QR generator",
+  "short_name": "IPS QR",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#0b5394",
+  "icons": [{ "src": "icon.png", "sizes": "180x180", "type": "image/png" }]
+}
